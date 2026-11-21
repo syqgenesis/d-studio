@@ -1,0 +1,6 @@
+# Windows batch / Inno Setup / PowerShell files must stay CRLF on checkout.
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+*.iss  text eol=crlf
+*.isl  text eol=crlf
+*.ps1  text eol=crlf

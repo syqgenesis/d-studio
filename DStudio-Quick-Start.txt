@@ -1,0 +1,25 @@
+﻿D Studio 0.2.1 | Windows 快速上手 / Quick start
+
+中文
+
+D Studio 在您点击「开始录制」后，录下所选屏幕或应用的画面，以及期间的键盘、鼠标操作。录制和导出文件保存在本机，由您审核后自行分享。
+
+1. 在 Windows 10 或 11 的 x64 电脑上双击 DStudio-Setup-0.2.1.exe，按提示安装。无需管理员权限，无需另装 Python 或 FFmpeg。若公司电脑拦截了未签名的安装包，请联系 IT。
+2. 从开始菜单运行「D Studio 自检」。如有检查失败，请先将自检结果发给提供安装包的人。录制保存盘至少需要 3 GB 可用空间。
+3. 打开 CAD 软件和「D Studio」。在录制条上点 ⚙ →「仅应用」→「选择应用…」，选中 CAD 软件。首次试录用 30 帧，保持「自动」后端。切到其他应用时，录制会自动暂停，切回后继续。
+4. 点击「开始录制」，用无敏感内容的测试文件操作约 30 秒。F9 暂停或继续，F10 停止，也可以点「停止并打包」。确认录制条显示「已暂停」后，再输入密码或处理私密内容。
+5. 等待显示「已打包」。点「打开文件夹」，播放 clip.mp4，确认画面和操作符合预期。要分享带键鼠数据的剪辑时，点「导出录制」。请核对导出目录中的 5 个文件：clip.mp4、events.json、frame_events.json、metadata.json、narration.json。未标注时，narration.json 是空模板。核对后再自行发送。默认录制目录为「文档\DStudio」。
+
+便携版（可选）：将 DStudio-Portable-0.2.1.zip 全部解压。打开解压后的 DStudio-0.2.1 文件夹，双击 SELFTEST.bat 自检，再双击 START-OVERLAY.bat 打开录制条。默认录制目录为该文件夹内的 data。
+
+English
+
+When you click Start recording, D Studio captures the selected screen or app, along with keyboard and mouse activity during the session. Recordings and exports are saved locally for you to review and share yourself.
+
+1. On an x64 PC running Windows 10 or 11, double-click DStudio-Setup-0.2.1.exe and follow the prompts. Python and FFmpeg are included, and administrator access is unnecessary. If your work PC blocks the unsigned installer, contact IT.
+2. Run D Studio Self-test from the Start menu. If a check fails, share the result with the person who provided the installer. Keep at least 3 GB free on the drive that will hold the recordings.
+3. Open your CAD app and D Studio. On the recording bar, click ⚙ → App only → Choose app… and select your CAD app. Use 30 fps and the Auto backend for the first test. Recording pauses when you switch to another app and resumes when you return.
+4. Click Start recording and work in a non-sensitive test file for about 30 seconds. F9 pauses or resumes. F10 stops, as does Stop & package. Confirm the bar shows Paused before entering passwords or handling private content.
+5. Wait for the bar to say Packaged. Click Open folder and play clip.mp4 to check the recording. To share a clip with the keyboard and mouse data, click Export recording. Review the five files in the export folder before sharing them: clip.mp4, events.json, frame_events.json, metadata.json, and narration.json. If you skipped annotation, narration.json is an empty template. Recordings default to Documents\DStudio.
+
+Portable option: Extract all of DStudio-Portable-0.2.1.zip. Open the extracted DStudio-0.2.1 folder, double-click SELFTEST.bat to run the checks, then double-click START-OVERLAY.bat to open the recorder. Recordings default to the data folder there.

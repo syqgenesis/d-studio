@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<!-- 360 / QQ / Sogou dual-core browsers: use the Chromium engine, never IE mode -->
+<meta name="renderer" content="webkit" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>D Studio · 标注台 / Annotator</title>
+<link rel="icon" href="data:," />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="dot"></span>
+    <strong>D Studio</strong>
+    <span class="sub" data-i18n="brand.sub">录屏数据标注</span>
+  </div>
+  <div class="grow"></div>
+  <select id="dataset-select" data-i18n-title="top.dataset.title" title="选择录制"></select>
+  <button id="btn-reload" class="ghost" data-i18n="top.reload" data-i18n-title="top.reload.title">重新加载</button>
+  <span id="save-state" class="save-state"></span>
+  <button id="btn-lang" class="ghost lang-toggle" type="button" data-i18n-title="top.lang.title" title="中文 / English">
+    <span data-lang="zh">中</span><span class="sep">/</span><span data-lang="en">EN</span>
+  </button>
+</header>
+
+<main class="layout">
+  <section class="stage">
+    <div class="video-wrap" id="video-wrap">
+      <video id="video" preload="auto" playsinline muted></video>
+      <canvas id="overlay"></canvas>
+      <div id="empty" class="empty" data-i18n="empty.loading">加载中…</div>
+    </div>
+
+    <div class="transport">
+      <button id="btn-play" class="primary" data-i18n-title="tr.play.title" data-i18n-aria="tr.play.title">▶</button>
+      <button id="btn-prev" class="ghost" data-i18n-title="tr.prev.title" data-i18n-aria="tr.prev.title">‹</button>
+      <button id="btn-next" class="ghost" data-i18n-title="tr.next.title" data-i18n-aria="tr.next.title">›</button>
+      <span class="time" id="time-label">00:00.000 / 00:00.000</span>
+      <span class="frame" id="frame-label" data-i18n-title="tr.frame.title">f 0</span>
+      <label class="chk" id="lbl-cursor" data-i18n-title="opt.cursor.title"><input type="checkbox" id="chk-cursor" checked /> <span data-i18n="opt.cursor">光标</span><span id="cursor-note" class="note hidden" data-i18n="opt.cursor.inVideo" data-i18n-title="opt.cursor.inVideo.title"></span></label>
+      <label class="chk" data-i18n-title="opt.trail.title"><input type="checkbox" id="chk-trail" checked /> <span data-i18n="opt.trail">拖尾</span></label>
+      <label class="chk" data-i18n-title="opt.events.title"><input type="checkbox" id="chk-events" checked /> <span data-i18n="opt.events">事件层</span></label>
+      <div class="grow"></div>
+      <label class="speed"><span data-i18n="opt.speed">速度</span>
+        <select id="speed">
+          <option value="0.25">0.25×</option>
+          <option value="0.5">0.5×</option>
+          <option value="1" selected>1×</option>
+          <option value="2">2×</option>
+          <option value="4">4×</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="timeline-wrap">
+      <canvas id="timeline" height="96" data-i18n-aria="tl.title"></canvas>
+      <div id="tl-tip" class="tl-tip hidden"></div>
+    </div>
+    <div class="legend">
+      <span class="lg"><i class="sw click"></i><span data-i18n="lg.click">点击</span></span>
+      <span class="lg"><i class="sw key"></i><span data-i18n="lg.key">按键</span></span>
+      <span class="lg"><i class="sw scroll"></i><span data-i18n="lg.scroll">滚动</span></span>
+      <span class="lg"><i class="sw drag"></i><span data-i18n="lg.drag">拖拽</span></span>
+      <span class="lg" data-i18n-title="lg.cut.title"><i class="sw cut"></i><span data-i18n="lg.cut">录制断点</span></span>
+      <span class="lg" data-i18n-title="lg.mask.title"><i class="sw mask"></i><span data-i18n="lg.mask">隐私遮挡 / 自动暂停</span></span>
+      <span class="lg"><i class="sw seg"></i><span data-i18n="lg.segment">标注段落</span></span>
+    </div>
+    <div class="hint">
+      <kbd>Space</kbd> <span data-i18n="hint.play">播放</span> ·
+      <kbd>←/→</kbd> <span data-i18n="hint.step">逐帧</span> ·
+      <kbd>Shift+←/→</kbd> <span data-i18n="hint.jump">跳 1 秒</span> ·
+      <kbd>S</kbd> <span data-i18n="hint.setStart">设起点</span> ·
+      <kbd>E</kbd> <span data-i18n="hint.setEnd">设终点</span> ·
+      <kbd>N</kbd> <span data-i18n="hint.new">新建段</span> ·
+      <kbd>Del</kbd> <span data-i18n="hint.delete">删除</span> ·
+      <kbd>Enter</kbd> <span data-i18n="hint.next">跳到下一段</span>
+    </div>
+  </section>
+
+  <aside class="panel">
+    <div class="panel-head">
+      <div class="title"><span data-i18n="panel.segments">标注段落</span> <span id="seg-count" class="pill">0</span></div>
+      <div class="actions">
+        <button id="btn-auto" class="ghost" data-i18n="btn.auto" data-i18n-title="btn.auto.title">自动预分割</button>
+        <button id="btn-new" class="ghost" data-i18n="btn.new" data-i18n-title="btn.new.title">新建</button>
+        <button id="btn-split" class="ghost" data-i18n="btn.split" data-i18n-title="btn.split.title">切分</button>
+        <button id="btn-del" class="danger" data-i18n="btn.del" data-i18n-title="btn.del.title">删除</button>
+      </div>
+    </div>
+    <ul id="segments" class="segments"></ul>
+
+    <div class="editor">
+      <div class="editor-head"><span data-i18n="editor.head">段落详情</span> <span id="editor-range" class="pill muted"></span></div>
+      <label><span data-i18n="editor.range">时间段（秒）</span>
+        <div class="row">
+          <input id="f-start" type="number" step="0.001" min="0" data-i18n-placeholder="ph.start" placeholder="start_s" />
+          <input id="f-end" type="number" step="0.001" min="0" data-i18n-placeholder="ph.end" placeholder="end_s" />
+          <button id="btn-set-start" class="ghost" type="button" data-i18n="editor.setStart" data-i18n-title="editor.setStart.title">设起点</button>
+          <button id="btn-set-end" class="ghost" type="button" data-i18n="editor.setEnd" data-i18n-title="editor.setEnd.title">设终点</button>
+        </div>
+      </label>
+      <label><span data-i18n="field.action">action · 做了什么</span><textarea id="f-action" rows="2" data-i18n-placeholder="ph.action"></textarea></label>
+      <label><span data-i18n="field.intent">intent · 为什么</span><textarea id="f-intent" rows="2" data-i18n-placeholder="ph.intent"></textarea></label>
+      <label><span data-i18n="field.app">app · 应用</span><input id="f-app" type="text" data-i18n-placeholder="ph.app" /></label>
+      <label><span data-i18n="field.details">details · 细节（可空）</span><textarea id="f-details" rows="2" data-i18n-placeholder="ph.details"></textarea></label>
+    </div>
+
+    <div class="summary">
+      <label><span data-i18n="field.summary">summary · 整段任务概述</span><textarea id="f-summary" rows="3" data-i18n-placeholder="ph.summary"></textarea></label>
+      <div class="actions wrap">
+        <button id="btn-export" class="primary" data-i18n="btn.export" data-i18n-title="btn.export.title">导出 narration.json</button>
+        <button id="btn-import" class="ghost" data-i18n="btn.import" data-i18n-title="btn.import.title">导入</button>
+        <input id="file-import" type="file" accept="application/json,.json" hidden />
+        <span id="quality" class="quality"></span>
+      </div>
+    </div>
+  </aside>
+</main>
+<script src="i18n.js"></script>
+<script src="overlay.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

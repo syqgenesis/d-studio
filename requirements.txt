@@ -1,0 +1,14 @@
+# -*- coding: utf-8 -*-  (pip reads the encoding from this line; keep it first)
+# D Studio - packages for a dev / unzipped-source folder (INSTALL.bat, CI).
+# D Studio 开发目录用的依赖（INSTALL.bat、CI）。安装包 DStudio-Setup.exe 已自带固定版本
+# （见 requirements-build.txt），普通用户不需要手动安装。
+#
+# numpy     : frames in Python (DXGI / GDI capture, app-only masking) / 帧处理与"仅录应用"遮罩
+# bettercam : DXGI desktop duplication (Windows 10 2004+/11), falls back to GDI / ffmpeg gdigrab
+#             DXGI 桌面复制；装不上或显卡不支持时自动回退 GDI / gdigrab
+# comtypes  : COM bindings used by bettercam
+# pillow    : cursor burn-in tool, icon, E2E frame checks / 光标烧录、图标、端到端测试
+numpy>=1.26
+comtypes>=1.4; sys_platform == "win32"
+bettercam>=1.0.0; sys_platform == "win32"
+pillow>=10.0

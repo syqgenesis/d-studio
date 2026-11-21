@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://destudio.local/schemas/narration.schema.json",
+  "title": "narration.json (produced by human annotators in the viewer)",
+  "type": "object",
+  "required": ["summary", "annotations"],
+  "properties": {
+    "summary": {
+      "type": "string",
+      "description": "One-paragraph description of the whole workflow goal."
+    },
+    "annotations": {
+      "type": "array",
+      "description": "Sorted by start_s, non-overlapping. Times are SECONDS (frame_events uses ms).",
+      "items": {
+        "type": "object",
+        "required": ["start_s", "end_s", "action", "intent", "app", "details"],
+        "properties": {
+          "start_s": { "type": "number", "minimum": 0 },
+          "end_s": { "type": "number", "minimum": 0, "description": "Must be > start_s; validated by the viewer/export gate." },
+          "action": { "type": "string", "minLength": 1, "description": "What the user did, in one or two sentences." },
+          "intent": { "type": "string", "description": "Why they did it (goal-level)." },
+          "app": { "type": "string", "description": "Foreground app(s) during the segment." },
+          "details": { "type": "string", "description": "Visible UI state, values, mistakes. May be empty." }
+        }
+      }
+    }
+  }
+}

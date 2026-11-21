@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://destudio.local/schemas/frame_events.schema.json",
+  "title": "frame_events.json line (JSONL, one frame per line)",
+  "description": "Events bucketed per video frame. frame index and video_t_ms are authoritative; events keep exact sub-frame timestamps.",
+  "type": "object",
+  "required": ["frame", "video_t_ms", "events"],
+  "properties": {
+    "frame": { "type": "integer", "minimum": 0 },
+    "video_t_ms": { "type": "number", "minimum": 0, "description": "Equals frame * 1000 / fps." },
+    "events": {
+      "type": "array",
+      "description": "Always starts with the synthetic mouse_move frame state; then mouse_delta/drag aggregates; then discrete events in time order. Events before the first frame land on frame 0. Between clips (pause / auto-pause) the resume snapshot (screen_config reason \"open\" ... privacy_mask_end) lands on the next clip's first frame with t_in_frame_ms 0, privacy_mask_start on the previous clip's last frame; other in-gap events stay only in events.json.",
+      "items": {
+        "type": "object",
+        "required": ["type", "timestamp", "video_t_ms", "t_in_frame_ms"],
+        "properties": {
+          "type": { "type": "string" },
+          "timestamp": { "type": "number" },
+          "video_t_ms": { "type": "number", "description": "Mapped onto the video timeline (clips are gapless)." },
+          "t_in_frame_ms": { "type": "number", "minimum": 0, "description": "video_t_ms - frame * 1000/fps." },
+          "synthetic": { "type": "boolean" },
+          "source": {
+            "enum": ["frame_timestamps_sidecar", "wm_input_frame_sum", "raw_drag_frame_state"]
+          },
+          "coordinate_space": {
+            "enum": ["screen_px_top_left", "raw_hid_relative"],
+            "description": "screen_px_top_left: x/y of mouse_move, click, drag and scroll (raw and synthetic). In the local dataset these are Windows virtual-screen pixels (negative left of / above the primary monitor; view/geometry.json maps them: video_px = (screen_px - origin) * videoSize / size). In the delivered Markov clip set (export_recording, export_cad --markov) they are clip.mp4 pixels: (0,0) is the video's top-left pixel, as in Markov's single-display samples; a position off the captured area (e.g. on another monitor) is kept as is, outside [0, width) x [0, height), and validation warns with the number of such frames. raw_hid_relative: mouse_delta device counts (never translated)."
+          },
+          "source_wall_ms": { "type": "integer" },
+          "sidecar_frame": { "type": "integer", "description": "Frame index inside the clip." },
+          "aggregated_count": { "type": "integer", "minimum": 1 },
+          "buttons": {
+            "type": "object",
+            "properties": {
+              "left": { "type": "boolean" },
+              "right": { "type": "boolean" },
+              "middle": { "type": "boolean" },
+              "other_3": { "type": "boolean" },
+              "other_4": { "type": "boolean" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

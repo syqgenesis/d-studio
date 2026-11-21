@@ -1,0 +1,55 @@
+0.2.1
+D Studio 0.2.1 (destudio)
+=========================
+
+The first line is the version (read by installer/build_windows.ps1 and dstudio.pyw).
+第一行是版本号（安装包构建脚本和 dstudio.pyw 读取）。
+
+Install / 安装
+--------------
+DStudio-Setup-0.2.1.exe      per-user installer, no admin rights; bundles Python 3.12,
+                             numpy, bettercam and FFmpeg. Recordings: Documents\DStudio.
+                             单用户安装，无需管理员权限；自带 Python 3.12、numpy、bettercam、FFmpeg。
+                             录制文件保存在“文档\DStudio”。
+DStudio-Portable-0.2.1.zip   unzip and run START-OVERLAY.bat; recordings go to <folder>\data.
+                             解压即用（双击 START-OVERLAY.bat），录制文件保存在 <解压目录>\data。
+
+Start-menu shortcuts / 开始菜单
+-------------------------------
+D Studio                     recorder bar / 录制悬浮条
+D Studio Annotator / 标注台  review recordings, write narration.json / 回看与标注
+D Studio Self-test / 自检    checks Python, FFmpeg, encoders, DXGI, recordings folder / 环境自检
+
+What's new in 0.2.1 / 0.2.1 更新
+--------------------------------
+- Disk space guard: warns below 3 GB free, stops cleanly below 1 GB (what was recorded is kept),
+  will not start below 3 GB. / 磁盘空间保护：低于 3 GB 提示，低于 1 GB 自动停止并保留已录内容，
+  不足 3 GB 不能开始录制。
+- Repeated capture crashes are shown on the bar instead of a silently running timer.
+  / 视频采集反复中断时在悬浮条上提示，不再只是计时器空转。
+- DXGI capture uses ~90% less memory (was 0.5-2 GB) and frames are copied safely, so app-only
+  masking cannot slip during window animations. / DXGI 采集内存降低约 90%，帧复制更安全，
+  “仅录应用”遮黑在窗口动画中不再可能错位。
+- Lock screen / UAC prompt can no longer freeze Start or Stop. / 锁屏或 UAC 弹窗不会再卡住开始/停止。
+- Running a .bat from inside the zip now says to extract first; annotator opens in Chromium mode
+  in 360/QQ browsers; Chinese text files open correctly in old Notepad; settings survive power loss.
+  / 在压缩包内直接运行会提示先解压；360/QQ 浏览器以极速模式打开标注台；旧版记事本中文不乱码；
+  断电不再丢失设置。
+
+What's new in 0.2.0 / 0.2.0 更新
+--------------------------------
+- Markov capture defaults: 30 fps CFR H.264 (libx264 CRF 23), cursor drawn into the video;
+  60 fps optional. / 与 Markov 一致：30 fps 恒定帧率、libx264 CRF 23、视频内带鼠标光标；可选 60 fps。
+- Chinese / English UI everywhere. / 全部界面中英双语。
+- App-only mode: everything outside the chosen app is painted black; recording pauses
+  automatically while another app is in front. / “仅录应用”模式：所选应用以外的画面全部涂黑，
+  切到其他应用时自动暂停。
+- Export a recording in the Markov clip format before narration is ready.
+  / 未标注也可先导出 Markov 格式剪辑集。
+- One-click Windows installer + portable zip, CI on GitHub Actions (windows-latest).
+  / 一键安装包与便携版，GitHub Actions 自动构建和端到端测试。
+
+Previous / 历史
+---------------
+0.1.0 (2026-11-17)  field-tested on Windows 11 / Python 3.12.10 / FFmpeg 9.0.2 / bettercam (DXGI),
+                    1920x1080 @ 30 fps. / 在 Windows 11 实测。

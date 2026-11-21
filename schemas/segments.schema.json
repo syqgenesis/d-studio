@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://destudio.local/schemas/segments.schema.json",
+  "title": "raw/segments.json (written by the recorder, read by the packager)",
+  "description": "One entry per video segment (a clip between pauses / restarts), in recording order. Written atomically after every segment stop, while recording (about every 10 s, the current segment with in_progress true) and when the recording stops, so a crashed session can still be packaged. Segment mp4s are fragmented MP4; the packager remuxes them into clip.mp4.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "index",
+      "file",
+      "fps",
+      "frames"
+    ],
+    "properties": {
+      "index": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "file": {
+        "type": "string",
+        "description": "File name under raw/segments/."
+      },
+      "fps": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "frame_count": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "start_wall_ms": {
+        "type": "number"
+      },
+      "end_wall_ms": {
+        "type": "number"
+      },
+      "frames": {
+        "type": "array",
+        "description": "Per-frame sidecar: [frame_index_in_segment, wall_clock_ms]. Duplicate-padded slots carry their nominal slot time (t0 + slot * 1000 / fps); the capture time of the frame they repeat is in duplicate_runs.",
+        "items": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "duplicate_runs": {
+        "type": "array",
+        "description": "Runs of duplicate-padded slots (the encoder repeated the previous frame because no new capture arrived in time): [first_slot, last_slot, content_wall_ms], where content_wall_ms is the capture wall time (sync latency subtracted, like frames) of the frame the slots repeat. Slots are frame indexes in this segment; at most 5000 runs are kept.",
+        "items": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "minItems": 3,
+          "maxItems": 3
+        }
+      },
+      "duplicate_runs_dropped": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "Runs not listed in duplicate_runs because its limit was reached (absent when 0)."
+      },
+      "output_size": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "description": "Encoded video size [width, height] of this segment after the even-size crop (an odd capture width or height is cropped by 1 px); null when unknown. Every segment of a recording has the same size.",
+        "prefixItems": [
+          {
+            "type": "integer",
+            "minimum": 1
+          },
+          {
+            "type": "integer",
+            "minimum": 1
+          }
+        ],
+        "minItems": 2,
+        "maxItems": 2
+      },
+      "finalized": {
+        "type": "boolean",
+        "description": "FFmpeg exited 0 after EOF/'q'. false: the packager probes the file and fits frames to its decodable frames."
+      },
+      "returncode": {
+        "type": [
+          "integer",
+          "null"
+        ],
+        "description": "FFmpeg exit code (null while running or unknown)."
+      },
+      "broken": {
+        "type": "boolean",
+        "description": "Nothing decodable: frames is empty and the packager skips the segment (its time becomes a gap)."
+      },
+      "in_progress": {
+        "type": "boolean",
+        "description": "Still recording when this file was written (crash recovery): the packager probes the file like finalized false."
+      },
+      "encoder": {
+        "type": "string"
+      },
+      "backend": {
+        "type": "string"
+      }
+    }
+  }
+}

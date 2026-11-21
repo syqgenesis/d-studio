@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://destudio.local/schemas/capture.schema.json",
+  "title": "raw/capture.json (written by the recorder, read by the packager)",
+  "description": "Recorder session summary. Every field is optional for the packager: older recordings without the v0.2 fields still package (capture_mode from source, cursor_in_video false, capture_rect from source + screens).",
+  "type": "object",
+  "required": [
+    "status",
+    "fps"
+  ],
+  "properties": {
+    "status": {
+      "enum": [
+        "recording",
+        "completed",
+        "failed"
+      ],
+      "description": "completed: the recorder stopped normally. Any other status means it did not finish: while raw/.recording.lock is held (recorder.reclock, K11) the session is still recording and the packager refuses it; once the lock is free (crash, power loss, killed process, or a recording made before v0.2.1 without the lock file) validation accepts the session as recovered after an abnormal stop, with a warning, when the clip decodes and its frame count matches."
+    },
+    "fps": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 120
+    },
+    "source": {
+      "type": "string",
+      "examples": [
+        "desktop",
+        "monitor:1",
+        "region:0,0,1920,1080",
+        "window:Notepad",
+        "app:SLDWORKS.exe"
+      ]
+    },
+    "capture_mode": {
+      "enum": [
+        "desktop",
+        "monitor",
+        "region",
+        "window",
+        "app"
+      ]
+    },
+    "capture_rect": {
+      "type": "object",
+      "description": "Virtual-screen pixels shown by the video. Desktop mode = the primary monitor (v0.2.1: single display); app mode = the captured monitor (origin may be negative on multi-monitor desktops). Every segment of a recording has this same rectangle and size. Validation requires the video size to equal width x height (an odd width or height cropped by 1 px to an even size is tolerated) for desktop/monitor/app.",
+      "required": [
+        "x",
+        "y",
+        "width",
+        "height"
+      ],
+      "properties": {
+        "x": {
+          "type": "integer"
+        },
+        "y": {
+          "type": "integer"
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "cursor_in_video": {
+      "type": "boolean",
+      "description": "OS cursor drawn into the video (Markov style)."
+    },
+    "app_target": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "exe": {
+          "type": "string"
+        },
+        "allow": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "overlay_allow": {
+          "type": "array",
+          "description": "--app-overlay-allow: extra exe names (lower case) whose full-screen click-through overlay windows (transparent HUDs) are left visible in app mode instead of being painted black, besides the built-in GPU overlay list.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "auto_pause": {
+          "type": "boolean"
+        }
+      }
+    },
+    "mask_stats": {
+      "type": "object",
+      "properties": {
+        "masked_frames": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "auto_pauses": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "auto_paused_ms": {
+          "type": "number",
+          "minimum": 0
+        },
+        "policy_pauses": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Privacy pauses because a blocklisted app (password manager) came to the front (trigger policy_blocked_app, any mode); their time is cut from the video."
+        }
+      }
+    },
+    "screens": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "index",
+          "originX",
+          "originY",
+          "width",
+          "height"
+        ]
+      }
+    },
+    "ffmpeg": {
+      "type": "string",
+      "description": "FFmpeg used for recording; the packager reuses it (and its sibling ffprobe) and falls back to recorder.paths."
+    },
+    "input_health": {
+      "type": "object"
+    },
+    "session_info": {
+      "type": "object"
+    },
+    "packager": {
+      "type": "object",
+      "description": "Written by the packager into the package's capture.json (not by the recorder).",
+      "properties": {
+        "segment_repairs": {
+          "type": "array",
+          "description": "Segments whose FFmpeg did not finish normally (raw/segments.json broken / in_progress / finalized false): reason broken | unreadable | untimed (left out; its time is a gap), truncated | trimmed (only the decodable start is used), extended (frames encoded after the last sidecar save got nominal frame times), complete (probed and used as listed). Whether a capture whose status is not 'completed' counts as recovered does not depend on this list (see status, K11).",
+          "items": {
+            "type": "object",
+            "properties": {
+              "index": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "file": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "reason": {
+                "enum": [
+                  "broken",
+                  "unreadable",
+                  "untimed",
+                  "truncated",
+                  "trimmed",
+                  "extended",
+                  "complete"
+                ]
+              },
+              "frames_listed": {
+                "type": "integer"
+              },
+              "frames_kept": {
+                "type": "integer"
+              }
+            }
+          }
+        },
+        "preroll_from_ms": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Set when segments before the first clip were left out: input before this wall time is not in the video (validation does not require it in the frame log)."
+        },
+        "dropped_events_before_first_clip": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "dropped_events_in_gaps": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "kept_events_from_gaps": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "dropped_events_after_end": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "invalid_raw_lines": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "recording_lock": {
+      "type": "boolean",
+      "description": "K11: true when the recorder held raw/.recording.lock (recorder.reclock) while recording; false when it could not take it (folder not writable or locked elsewhere), so a crash cannot be told from a live session and a non-completed status is treated as recovered."
+    }
+  }
+}

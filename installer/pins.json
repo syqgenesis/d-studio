@@ -1,0 +1,23 @@
+{
+  "_comment": "Pinned third-party downloads for the Windows build (installer/build_windows.ps1, installer/get_ffmpeg.ps1). Change url + sha256 together; CI caches build-cache/ keyed on this file.",
+  "python": {
+    "version": "3.12.16",
+    "source": "astral-sh/python-build-standalone release 20261026 (install_only, x86_64-pc-windows-msvc, includes tkinter/Tcl/Tk 8.6)",
+    "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20261026/cpython-3.12.16%2B20261026-x86_64-pc-windows-msvc-install_only.tar.gz",
+    "file": "cpython-3.12.16+20261026-x86_64-pc-windows-msvc-install_only.tar.gz",
+    "sha256": "590dfcbe3a34c07301e6332e13e2188b98655cd072b08afa45a7998dc4c22bc5",
+    "bytes": 47113364
+  },
+  "ffmpeg": {
+    "version": "9.0.2",
+    "source": "gyan.dev release essentials build via GitHub mirror GyanD/codexffmpeg (static win64; libx264, nvenc, amf, libvpl/qsv, gdigrab)",
+    "url": "https://github.com/GyanD/codexffmpeg/releases/download/9.0.2/ffmpeg-9.0.2-essentials_build.zip",
+    "file": "ffmpeg-9.0.2-essentials_build.zip",
+    "sha256": "60f467265b1e312373dbcd92200c2618a74850f98d3d078e94296bb3fa2047ba",
+    "bytes": 114768076
+  },
+  "innosetup": {
+    "choco_version": "6.7.1",
+    "note": "windows-latest ships Inno Setup 6.7.1; Chinese Simplified messages come from installer/lang/ChineseSimplified.isl (jrsoftware/issrc tag is-6_7_4, Unofficial) unless the compiler ships an official one."
+  }
+}

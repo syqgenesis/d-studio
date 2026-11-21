@@ -1,0 +1,106 @@
+﻿CAD采集工具交付检查说明 / CAD delivery checklist
+更新日期：2026年11月18日（v0.2）
+
+【v0.2 新增 / What's new in v0.2】
+1. 安装：运行 DStudio-Setup-0.2.1.exe（无需管理员，内置 Python 和 FFmpeg），开始菜单打开“D Studio”。录像保存在“文档\DStudio”。
+   Install: run DStudio-Setup-0.2.1.exe (no admin; Python and FFmpeg included) and open "D Studio" from the Start menu. Recordings go to Documents\DStudio.
+2. 仅应用录制：齿轮 → “仅应用” → “选择应用…”选 CAD 软件。画面仍为整块显示器（算作全屏），其他窗口、通知、任务栏全部涂黑；切到其他软件时自动暂停并从成片中剪掉，事件里记录 privacy_mask_start / privacy_mask_end。
+   App only: gear → "App only" → "Choose app…" and pick the CAD program. The video is still the whole monitor (counts as full screen); every other window, notification and the taskbar is painted black. Switching to another program auto-pauses and cuts that time, logged as privacy_mask_start / privacy_mask_end.
+3. 鼠标指针默认画进 clip.mp4（与 Markov 样例一致）；帧率可选 30（Markov 标准）或 60。
+   The mouse cursor is drawn into clip.mp4 by default (as in Markov's samples); frame rate 30 (Markov standard) or 60.
+4. 暂未写解说时，可用“↓ 导出录制”只导出 5 个剪辑文件（narration.json 为空模板）。
+   Before narration is written, "↓ Export recording" exports just the 5 clip files (narration.json is an empty template).
+5. CAD 软件若以管理员身份运行，D Studio 也需以管理员身份运行，否则键鼠事件可能缺失。
+   If the CAD program runs as administrator, run D Studio as administrator too, otherwise keyboard/mouse events may be missing.
+6. 下文第 2 步中“只能用 desktop 全屏”的要求：v0.2 起“全屏”和“仅应用”都满足；region / window 仍不满足。
+   Step 2 below: from v0.2 both "Full screen" and "App only" satisfy the full-screen requirement; region / window still do not.
+7. 下文命令行中的 .venv\Scripts\python.exe，安装版请换成 %LOCALAPPDATA%\Programs\DStudio\python\python.exe。
+   In the commands below, the installed version uses %LOCALAPPDATA%\Programs\DStudio\python\python.exe instead of .venv\Scripts\python.exe.
+
+START-GDIGRAB.bat 默认使用 Markov CAD 样例格式
+样例为 Model an oscillating wobbler steam engine assembly。
+https://www.markovstudios.com/datasets/cad-environments/model-an-oscillating-wobbler-steam-engine-assembly-a238b499
+
+从设置中的“CAD交付信息”选择自己的原创任务集目录。目录需要 task.pdf、task_desc.json 和 rubrics.json。
+参考文件放在 task_files/ 下，成品和装配依赖放在 output_files/ 下。未提供 ZIP 时，工具导出时会分别生成 references.zip 和 gold.zip。
+也可以提供两份已打包的 ZIP。ZIP 中的文件路径需要保留 task_files/ 或 output_files/ 开头，并与任务描述中的清单逐项一致。
+
+task_desc.json 字段示例（将内容和路径替换为自己的任务）
+{
+  "task": "建模支撑件",
+  "domain": "CAD",
+  "application": "SOLIDWORKS",
+  "description": "按给定参考图完成原生零件及 STEP 导出。",
+  "input_files": ["task_files/diagrams/bracket.pdf"],
+  "deliverables": [
+    {"path": "output_files/project_files/bracket.SLDPRT", "type": "native_project_or_dependency", "format": ".sldprt", "description": "原生零件"},
+    {"path": "output_files/project_files/bracket.step", "type": "native_project_or_dependency", "format": ".step", "description": "STEP 成品"}
+  ]
+}
+
+rubrics.json 示例
+{"schema_version":"1.0","rubrics":[{"id":"R1","requirement":"按图中尺寸检查孔距和板厚。"}]}
+
+装配任务在 deliverables 逐项声明主装配、依赖零件以及要求的 STEP、Parasolid（.x_t）等文件。检查工具会报出缺失项及清单外文件。装配关系和几何正确性还需在 CAD 软件中打开复核。
+完成回看与标注后，点击“核验并导出 Markov CAD”。导出目录直接包含 10 个文件：
+task.pdf、task_desc.json、rubrics.json、references.zip、gold.zip
+clip.mp4、events.json、frame_events.json、narration.json、metadata.json
+样例版 metadata.json 采用样例的 6 个字段。工程师、软件版本、许可和授权信息保存在本地会话目录。两份导出日志采用 JSONL，保留事件和时间信息；本地 seq、osTime 保留在原始会话中供追溯。
+如客户要求额外提交会话信息及授权材料，可用下文的传统导出格式。命令行新增 --markov 参数选择样例格式。
+
+1、核对依据与结论
+已核对客户《CAD屏幕录制数据集录制要求》及 Markov 的 Interior Plan and Ceiling Drafting 样例。
+参考：https://www.markovstudios.com/datasets/general-computer-use/interior-plan-and-ceiling-drafting-12e2f3e0
+样例 metadata：30fps、85027帧、2834233毫秒；events.json 和 frame_events.json 均为逐行JSON，不是外层数组。
+本工具已补齐成片命名、双份键鼠日志、会话信息表单及交付检查。但软件能够生成文件，不代表真实CAD案例已经满足客户验收。
+
+2、使用步骤
+关闭旧的录制悬浮窗，重新双击 START-GDIGRAB.bat。
+点击齿轮，再点“CAD交付信息”，填写工程师编号、原创案例编号、CAD软件及版本、界面语言；选择正版许可和工程师授权证明文件、任务集目录。
+使用 desktop 全屏录制，默认30fps，原始桌面分辨率；不要选择 region 或 window，否则正式导出会提示不满足全屏要求。
+开始录制，F9暂停或继续，F10停止；也可点击“停止并打包”。停止后计时冻结，收尾结束后显示的时长与成片帧数对应。
+停止后，在“CAD交付信息”核对当前视频的完成、原创、同步及质量情况。完成／同步／质量复核不会自动带入下一条录制。
+双击 START-VIEWER.bat 打开回看和标注台，检查视频、轨迹与点击，并保存 narration.json。
+回到录制窗口点击齿轮、“核验并导出交付包”，选择保存位置。新建交付目录，已有目录不会被覆盖。
+保存出来但未通过交付检查的录像仍留在 data/rec-日期-时间/，不会因此删除。
+
+3、剪辑集
+clip.mp4：全屏成片。暂停时段从成片移除，原始录制片段保留在 raw/。
+events.json：全速率鼠标、点击、滚轮、键盘、应用和系统事件；timestamp为毫秒时间戳，保留seq和osTime。
+frame_events.json：一行一帧，video_t_ms = frame × 1000 / fps；离散输入保留原始序号并补帧内时间；鼠标状态及位移按帧聚合。
+metadata.json：兼容样例的核心字段；另补软件名称、版本、许可材料、界面语言、录制分辨率、工程师及案例编号等客户文档要求的信息。扩展字段应在客户解析联调时确认。
+narration.json：summary以及annotations；每段包含start_s、end_s、action、intent、app、details。时间为秒，不能重叠；本工具不会把空模板当作已完成标注。
+capture.json、validation.json：采集来源及检查报告。view/为本地回看索引，raw/为原始日志及片段，不必全部作为客户训练输入。
+新录像使用clip.mp4。标注台仍兼容旧版video.mp4数据。
+
+4、任务集
+任务目录需要提供task.pdf、task_desc.json、rubrics.json、references.zip、gold.zip。
+gold.zip包含真实CAD原生工程和STEP成品。二维AutoCAD任务如果无法合理导出STEP，先与客户明确豁免，当前工具不会偷偷跳过此项。
+任务、图纸、成品和授权证明须实际提供；软件不能代替工程师完成原创设计，也不能验证某份许可证明是否合法有效。
+传统导出包含task_set/、clip_set/当前样本/、evidence/和delivery_manifest.json；清单记录案例编号、工程师、文件大小和SHA256，方便建立交付台账。
+
+5、这次修正的核心问题
+停止计时以停止时间冻结，结束后按实际成片帧数显示时长；等待编码器或日志线程时不再占用界面读取锁。
+鼠标相对位移改用Windows WM_INPUT设备原始包，不能再用屏幕光标坐标之差冒充原始HID计数。采样频率取决于设备和系统，不承诺固定1000Hz。
+键鼠监听失败、队列丢失、写入失败及回调异常会记录并阻止交付。
+gdigrab帧时钟改取采集PTS的整数值，不再以FFmpeg日志到达Python的时刻作起点，避免编码／缓冲等待造成整体偏移。
+不规则帧时间戳按实际帧区间映射，避免归入错误的视频帧。view光标索引与逐帧光标状态一致。
+视频片段缺失、拼接失败、实际帧数与日志不符、离散输入缺失或重复，会在检查中报错。
+
+6、仍需完成的验收
+短录已经验证，不代表30分钟或更长录制已完成稳定性验收。应先用一条真实、完整CAD任务试产，再做长录和批量测试。
+结构校验不等于物理同步精度认证。需录制可见的点击／快捷键操作，对照视频反馈与日志逐帧检查并记录最大误差；验收阈值应与客户约定。检查后才能勾选同步确认。
+多屏混合DPI、管理员权限CAD、远程桌面或特殊鼠标驱动，应分别实测。原始鼠标设备包并非所有远程会话都可获得。
+多工程师、多软件和任务类型覆盖、原创性、正版资质、授权有效性、任务完整性及英文界面需求，仍需生产管理和人工验收。
+当前narration可在标注台完成；尚未接入多模态AI自动生成。不能仅凭按键和点击记录可靠推断每步操作的设计意图。
+旧录像缺失的真实原始输入、捕获PTS或操作事件不能事后补造；关键项缺失时应重新录制。
+
+7、命令行检查
+在本工具目录运行：
+.venv\Scripts\python.exe -m packager.validate --markov --dataset data\录制目录 --decode --task-set D:\实际任务集目录
+检查报告写入录制目录的validation.json。technical_ok表示文件与日志检查通过；ready_for_delivery还要求会话信息、任务集、标注和人工复核完整。
+命令退出码0表示检查通过，2表示尚未达到交付条件。
+
+8、命令行导出
+.venv\Scripts\python.exe -m packager.export_cad --markov --dataset data\录制目录 --task-set D:\实际任务集目录 --out D:\交付\新的样本目录
+导出前进行全片解码核验；失败时不会创建正式交付目录。成功导出不代替客户业务验收。

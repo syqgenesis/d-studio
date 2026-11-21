@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://destudio.local/schemas/events.schema.json",
+  "title": "events.json line (JSONL, one event per line, events_schema = 2)",
+  "description": "Full-rate input/window/system event log. Sorted by (timestamp, seq). Positions (x/y of mouse_move, click, drag, scroll, window_moved, window_resized) are Windows virtual-screen pixels in the local dataset and clip.mp4 pixels (top-left = 0,0) in the delivered Markov clip set, where a position off the captured area (e.g. the cursor on another monitor) is kept as is, outside the video's pixel range; screen_config keeps the monitor layout in virtual-screen pixels. The delivered set also drops seq and osTime.",
+  "type": "object",
+  "required": ["type", "timestamp", "seq", "osTime"],
+  "properties": {
+    "type": {
+      "enum": [
+        "screen_config", "active_app", "app_launch", "app_terminate", "app_hidden", "app_unhidden",
+        "window_moved", "window_resized", "window_title_changed",
+        "mouse_move", "mouse_delta", "click", "drag", "scroll",
+        "key", "modifier_change",
+        "privacy_mask_start", "privacy_mask_end",
+        "appearance_change", "battery_status", "power_source_change",
+        "network_change", "wifi_change", "memory_pressure"
+      ]
+    },
+    "timestamp": {
+      "type": "number",
+      "description": "Wall clock, epoch milliseconds (sub-ms precision)."
+    },
+    "seq": { "type": "integer", "minimum": 1, "description": "Monotonic per-session event id." },
+    "osTime": { "type": "integer", "minimum": 0, "description": "GetTickCount64 ms (monotonic, immune to clock jumps)." },
+    "appName": { "type": "string" },
+    "bundleId": { "type": "string", "description": "Executable file name, e.g. Resolve.exe." },
+    "screen": { "type": "integer", "minimum": 0 },
+    "sourcePid": { "type": "integer" },
+    "synthetic": { "type": "boolean", "description": "True when the event was injected by software." },
+    "modifiers": {
+      "type": "integer",
+      "description": "Bitmask: 1=Shift, 2=Ctrl, 4=Alt, 8=Win, 16=CapsLock."
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "type": { "const": "mouse_move" } }, "required": ["type"] },
+      "then": { "required": ["x", "y"] }
+    },
+    {
+      "if": { "properties": { "type": { "const": "mouse_delta" } }, "required": ["type"] },
+      "then": { "required": ["dx", "dy", "packets"] }
+    },
+    {
+      "if": { "properties": { "type": { "const": "click" } }, "required": ["type"] },
+      "then": {
+        "required": ["x", "y", "button", "isDown", "clickCount", "pressure"],
+        "properties": {
+          "button": { "enum": ["left", "right", "middle", "other_3", "other_4"] }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "type": { "const": "drag" } }, "required": ["type"] },
+      "then": { "required": ["x", "y", "button", "pressure"] }
+    },
+    {
+      "if": { "properties": { "type": { "const": "scroll" } }, "required": ["type"] },
+      "then": {
+        "required": ["x", "y", "deltaX", "deltaY", "channel"],
+        "properties": { "channel": { "enum": ["wheel", "continuous"] } }
+      }
+    },
+    {
+      "if": { "properties": { "type": { "const": "key" } }, "required": ["type"] },
+      "then": {
+        "required": ["keyCode", "characters", "isDown", "isRepeat", "scanCode", "extended", "hkl", "dead"],
+        "properties": {
+          "keyCode": { "type": "integer", "description": "Windows virtual-key code." },
+          "characters": { "type": "string", "description": "Unicode text produced, '' if none." },
+          "hkl": { "type": "string", "description": "Keyboard layout handle, hex, e.g. 40090409." }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "type": { "const": "screen_config" } }, "required": ["type"] },
+      "then": {
+        "required": ["screenCount", "screens", "reason"],
+        "properties": {
+          "screens": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["index", "originX", "originY", "width", "height", "visibleWidth", "visibleHeight", "scaleFactor", "clipIndex", "deviceName", "primary"]
+            }
+          },
+          "reason": { "type": "string", "description": "open = state snapshot when a segment opens (recording start and every resume), change = displays changed." }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "type": { "const": "active_app" } }, "required": ["type"] },
+      "then": { "required": ["name", "bundleId", "windowTitle", "pid", "isFullScreen", "hwnd", "windowClass"] }
+    },
+    {
+      "if": { "properties": { "type": { "const": "privacy_mask_start" } }, "required": ["type"] },
+      "then": {
+        "required": ["trigger", "maskTrigger", "maskDetail", "maskedDisplay"],
+        "properties": {
+          "maskTrigger": { "type": "string", "description": "non_target_app = app-only auto-pause; policy_blocked_app = blocklisted app (password manager) in front, in any capture mode. Both pause the recording: the masked time is cut from the video and no input is logged until privacy_mask_end (logged after the resume). Recordings made before v0.2.1 only marked policy_blocked_app intervals; the packager detects such un-cut intervals and the recording-only export refuses them." },
+          "maskDetail": { "type": "string", "description": "Lower-case exe name of the app that caused the mask." },
+          "windowTitle": { "type": "string", "description": "Always empty for non-target apps (their titles are never logged)." }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "type": { "const": "privacy_mask_end" } }, "required": ["type"] },
+      "then": { "required": ["trigger", "maskDetail"] }
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://destudio.local/schemas/metadata.schema.json",
+  "title": "metadata.json",
+  "description": "Local package metadata. The Markov export (packager.export_cad --markov / --recording-only) keeps only category, platform, total_duration_ms, total_frames, event_count and fps.",
+  "type": "object",
+  "required": [
+    "workflow_id", "category", "platform", "title", "description",
+    "total_duration_ms", "total_frames", "event_count", "fps", "events_schema", "clips"
+  ],
+  "properties": {
+    "workflow_id": { "type": "string" },
+    "category": { "type": "string" },
+    "platform": { "type": "string", "examples": ["windows"] },
+    "title": { "type": "string" },
+    "description": { "type": "string" },
+    "total_duration_ms": { "type": "integer", "minimum": 0, "description": "round(total_frames * 1000 / fps)" },
+    "total_frames": { "type": "integer", "minimum": 1 },
+    "event_count": { "type": "integer", "minimum": 0, "description": "Line count of events.json." },
+    "fps": { "type": "integer", "minimum": 1, "description": "Video frame rate (CFR). Markov samples are 30; 60 is allowed (validation warns)." },
+    "events_schema": { "const": 2 },
+    "video_file": { "type": "string", "default": "clip.mp4", "description": "Local package only." },
+    "capture_mode": {
+      "enum": ["desktop", "monitor", "region", "window", "app"],
+      "description": "Local package only (not in the Markov export). From raw/capture.json; older recordings derive it from source."
+    },
+    "cursor_in_video": {
+      "type": "boolean",
+      "description": "Local package only (not in the Markov export). OS cursor drawn into the video; older recordings default to false."
+    },
+    "clips": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Frame ranges of the source recording, concatenated without holes. source_start_ms is the wall clock of the clip's first frame.",
+      "items": {
+        "type": "object",
+        "required": ["clip_index", "segment_index", "frame_start", "frame_count", "source_start_ms", "gap_before_ms", "gap_before_clamped"],
+        "properties": {
+          "clip_index": { "type": "integer", "minimum": 0 },
+          "segment_index": { "type": "integer", "minimum": 0 },
+          "frame_start": { "type": "integer", "minimum": 0 },
+          "frame_count": { "type": "integer", "minimum": 1 },
+          "source_start_ms": { "type": "integer" },
+          "source_start_precise_ms": { "type": "number", "description": "Unrounded wall clock of the clip's first frame." },
+          "source_end_ms": { "type": "number", "description": "source_start_precise_ms + frame_count * 1000 / fps." },
+          "gap_before_ms": { "type": "integer", "minimum": 0 },
+          "gap_before_clamped": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}
